@@ -6,11 +6,10 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import javax.persistence.PersistenceException;
-import java.sql.SQLException;
 import java.util.List;
 
 public class UserDaoHibernateImpl implements UserDao {
-    Util hibernateConnect = new Util();
+
     public UserDaoHibernateImpl() {
 
     }
@@ -18,87 +17,111 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void createUsersTable() {
-        try (Session session = hibernateConnect.getSessionFactory().getCurrentSession()){
-
+        Session session = Util.getSessionFactory().getCurrentSession();
+        try {
             session.beginTransaction();
             session.createSQLQuery("CREATE TABLE User (id INT NOT NULL AUTO_INCREMENT, name VARCHAR(45) NULL, lastName VARCHAR(45) NULL, age INT NULL, PRIMARY KEY (id));")
                     .executeUpdate();
             session.getTransaction().commit();
-
-        }catch (PersistenceException | IllegalArgumentException e){
-
+        } catch (PersistenceException | IllegalArgumentException ignore){
+        } catch (Exception e) {
+            e.getStackTrace();
+            session.getTransaction().rollback();
+        } finally {
+            session.close();
         }
     }
 
     @Override
     public void dropUsersTable() {
-        try (Session session = hibernateConnect.getSessionFactory().getCurrentSession()){
-
+        Session session = Util.getSessionFactory().getCurrentSession();
+        try {
             session.beginTransaction();
             session.createSQLQuery("DROP TABLE IF EXISTS user").executeUpdate();
             session.getTransaction().commit();
 
-        }catch (IllegalArgumentException | PersistenceException ignore){
+        } catch (IllegalArgumentException | PersistenceException ignore){
+        } catch (Exception e) {
+            e.getStackTrace();
+            session.getTransaction().rollback();
+        } finally {
+            session.close();
         }
 
     }
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
-
-        try(Session session = hibernateConnect.getSessionFactory().openSession()) {
-
+        Session session = Util.getSessionFactory().openSession();
+        try {
             session.beginTransaction();
             User user = new User(name, lastName, age);
             session.save(user);
             session.getTransaction().commit();
             System.out.println("User - " + name + " добавлен");
 
-        }catch (IllegalArgumentException e){
-
+        } catch (IllegalArgumentException ignore){
+        } catch (Exception e) {
+            e.getStackTrace();
+            session.getTransaction().rollback();
+        } finally {
+            session.close();
         }
 
     }
 
     @Override
     public void removeUserById(long id) {
-
-        try (Session session = hibernateConnect.getSessionFactory().openSession()){
-
+        Session session = Util.getSessionFactory().openSession();
+        try {
             session.beginTransaction();
             User user = session.get(User.class, id);
             session.delete(user);
             session.getTransaction().commit();
 
-        }catch (IllegalArgumentException e){}
+        } catch (IllegalArgumentException ignore){
+        } catch (Exception e) {
+            e.getStackTrace();
+            session.getTransaction().rollback();
+        } finally {
+            session.close();
+        }
 
 
     }
 
     @Override
     public List<User> getAllUsers() {
-
-        List<User> list;
-        Session session = hibernateConnect.getSessionFactory().openSession();
-        Transaction transaction = session.beginTransaction();
-        list = session.createCriteria(User.class).list();
-        transaction.commit();
-        session.close();
-
+        List<User> list = null;
+        Session session = Util.getSessionFactory().openSession();
+        try {
+            Transaction transaction = session.beginTransaction();
+            list = session.createCriteria(User.class).list();
+            transaction.commit();
+        } catch (Exception e) {
+            e.getStackTrace();
+            session.getTransaction().rollback();
+        } finally {
+            session.close();
+        }
         return list;
     }
 
     @Override
     public void cleanUsersTable() {
-
-        try (Session session = hibernateConnect.getSessionFactory().getCurrentSession()){
+        Session session = Util.getSessionFactory().getCurrentSession();
+        try {
 
             session.beginTransaction();
             session.createQuery("DELETE FROM User").executeUpdate();
             session.getTransaction().commit();
 
-        }catch (IllegalArgumentException e){
-
+        } catch (IllegalArgumentException ignore){
+        } catch (Exception e) {
+            e.getStackTrace();
+            session.getTransaction().rollback();
+        } finally {
+            session.close();
         }
 
     }

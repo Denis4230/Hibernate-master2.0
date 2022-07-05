@@ -7,18 +7,22 @@ import org.hibernate.cfg.Configuration;
 import java.sql.Connection;
 
 public class Util {
-    private Connection connection;
-    private SessionFactory sessionFactory;
+    private static Connection connection;
+    private static final SessionFactory sessionFactory;
 
-    public Util() {
+    static  {
         sessionFactory = new Configuration().addAnnotatedClass(User.class).buildSessionFactory();
     }
 
-    public Connection getConnection() {
+    public static Connection getConnection() {
         return connection;
     }
 
-    public SessionFactory getSessionFactory() {
+    public static SessionFactory getSessionFactory() {
         return sessionFactory;
+    }
+
+    public static void closeSessionFacto() {
+        sessionFactory.close();
     }
 }
